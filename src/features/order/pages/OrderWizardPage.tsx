@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { track } from "@vercel/analytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -372,6 +373,11 @@ export default function OrderWizardPage() {
     // abierto o no.
     const message = buildOrderWhatsAppMessage(result.order);
     const url = buildWhatsAppUrl(message);
+    try {
+      track("pedido"); // Pedido guardado (Vercel Web Analytics), sin datos del pedido.
+    } catch {
+      // La analítica nunca debe romper el envío.
+    }
     let opened: Window | null = null;
     try {
       opened = window.open(url, "_blank");
