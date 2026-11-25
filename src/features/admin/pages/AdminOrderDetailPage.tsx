@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { DEPOSIT_PERCENTAGE } from "@/config/business";
+import { DEPOSIT_PERCENTAGE, URGENT_ORDER_SURCHARGE_CENTS } from "@/config/business";
 import {
   computeBalanceDueCents,
   computeOverpaidCents,
@@ -328,6 +328,9 @@ function CakeItemDetails({ item }: { item: OrderItem }) {
         <ItemLine label="Toppings">
           {c.toppings.map((t) => t.label).join(", ")}
         </ItemLine>
+      )}
+      {c.cinnamon !== undefined && (
+        <ItemLine label="Canela">{c.cinnamon ? "Sí" : "No"}</ItemLine>
       )}
       {c.customToppingRequest && (
         <ItemLine label="Topping solicitado">
@@ -655,6 +658,21 @@ export default function AdminOrderDetailPage() {
     toast.success(`Presupuesto guardado: ${formatEuros(cents)}`);
   }
 
+  /** El suplemento por urgencia solo lo pone o lo quita la tienda (25/11/2026). */
+  function toggleUrgencySurcharge() {
+    if (!order) return;
+    const charge = !order.pricing.urgencySurchargeCents;
+    const updated = orderRepository.setUrgencySurcharge(order.id, charge);
+    if (!updated) {
+      toast.error("No se pudo cambiar el suplemento del pedido.");
+      return;
+    }
+    setOrder(updated);
+    toast.success(
+      charge ? "Suplemento por urgencia añadido" : "Suplemento por urgencia quitado"
+    );
+  }
+
   const { pricing } = order;
   const isDelivery = order.fulfillmentType === "delivery";
   const quoteItem = order.items.find((item) => item.requiresQuote);
@@ -948,6 +966,16 @@ export default function AdminOrderDetailPage() {
                   </div>
                 )}
               </dl>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={toggleUrgencySurcharge}
+              >
+                {(pricing.urgencySurchargeCents ?? 0) > 0
+                  ? "Quitar suplemento por urgencia"
+                  : `Añadir suplemento por urgencia (+${formatEuros(URGENT_ORDER_SURCHARGE_CENTS)})`}
+              </Button>
               <Separator />
               <div className="flex items-center justify-between gap-3">
                 <span className="font-display text-base font-semibold text-primary">

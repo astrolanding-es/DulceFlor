@@ -60,6 +60,10 @@ export const CAKE_BOX_PRICE_CENTS = 99;
  * Suplemento por pedido urgente: menos de STANDARD_ORDER_LEAD_TIME_DAYS de
  * margen obliga a reorganizar el obrador (confirmado el 20/09/2026: 5 €).
  * Se aplica UNA vez por pedido, no por artículo.
+ *
+ * Desde el 25/11/2026 solo lo cobra la tienda, cuando ella lo marca (kiosk o
+ * ficha del pedido en el panel): la web pública ya no lo suma sola. El pedido
+ * sigue marcándose como urgente igual.
  */
 export const URGENT_ORDER_SURCHARGE_CENTS = 500;
 

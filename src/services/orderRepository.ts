@@ -36,6 +36,8 @@ export interface OrderRepository {
    * recalcula el total y la señal desde el motor de dominio.
    */
   setQuotedPrice(id: string, quotedPriceCents: number): Order | undefined;
+  /** Añade o quita el suplemento por urgencia (decisión de la tienda). */
+  setUrgencySurcharge(id: string, charge: boolean): Order | undefined;
   /**
    * Deja constancia de que se ha avisado al cliente de que su pedido está
    * tramitado, y por qué vía. Se llama SOLO cuando el aviso ha salido de
@@ -316,10 +318,21 @@ class OrderRepositoryImpl implements OrderRepository {
         order.items,
         order.pricing.deliveryFeeCents,
         quotedPriceCents,
-        // La urgencia se fijó al registrar el pedido y no se recalcula: si el
-        // pedido entró urgente, su suplemento sigue formando parte del total
-        // aunque el presupuesto se cierre días después.
-        Boolean(order.urgent)
+        // El suplemento se conserva tal como estaba: lo decide la tienda, no
+        // la fecha, y cerrar el presupuesto no lo pone ni lo quita.
+        Boolean(order.pricing.urgencySurchargeCents)
+      ),
+    }));
+  }
+
+  setUrgencySurcharge(id: string, charge: boolean): Order | undefined {
+    return this.mutate(id, (order) => ({
+      ...order,
+      pricing: computeOrderPricing(
+        order.items,
+        order.pricing.deliveryFeeCents,
+        order.pricing.quotedPriceCents,
+        charge
       ),
     }));
   }

@@ -91,9 +91,7 @@ export default function OrderConfirmationPage() {
           role="alert"
           className="mt-6 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground"
         >
-          <strong>Tu pedido es urgente</strong> (quedan menos de 3 días), así que
-          incluye el suplemento de urgencia de{" "}
-          {formatEuros(order.pricing.urgencySurchargeCents ?? 0)}.{" "}
+          <strong>Tu pedido es urgente</strong> (quedan menos de 3 días).{" "}
           <strong>Envíanos el WhatsApp ahora</strong> para que podamos decirte
           cuanto antes si llegamos a tiempo: hasta que lo recibamos no podemos
           confirmarlo.

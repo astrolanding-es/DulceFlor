@@ -422,20 +422,21 @@ export function computeOverpaidCents(
  *   pedido queda pendingQuote (total parcial, SIN señal). Cuando
  *   administración introduce el presupuesto, se suma al total y la señal se
  *   calcula con normalidad.
- * - `urgent`: pedido para dentro de menos de 3 días. Suma el suplemento de
- *   urgencia al total, como línea propia y visible.
+ * - `urgencySurcharge`: la tienda ha decidido cobrar el suplemento de
+ *   urgencia. Ya no se deduce de la fecha (25/11/2026): un pedido urgente
+ *   solo lo lleva si ella lo marca.
  */
 export function computeOrderPricing(
   items: OrderItem[],
   deliveryFeeCents: number | null,
   quotedPriceCents?: number | null,
-  urgent = false
+  urgencySurcharge = false
 ): OrderPricing {
   const subtotalCents = computeItemsSubtotalCents(items);
   const hasQuoteItems = items.some((item) => item.requiresQuote);
   const quoted = hasQuoteItems ? (quotedPriceCents ?? null) : null;
   const pendingQuote = hasQuoteItems && quoted === null;
-  const urgencySurchargeCents = computeUrgencySurchargeCents(urgent);
+  const urgencySurchargeCents = computeUrgencySurchargeCents(urgencySurcharge);
 
   const totalCents =
     subtotalCents + (deliveryFeeCents ?? 0) + (quoted ?? 0) + urgencySurchargeCents;

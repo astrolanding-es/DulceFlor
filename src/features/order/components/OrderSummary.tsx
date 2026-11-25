@@ -59,16 +59,17 @@ export function OrderSummary({ showDepositInfo = true }: { showDepositInfo?: boo
             <dd className="font-medium text-success">Gratis</dd>
           </div>
         )}
-        {/* El suplemento de urgencia va con su motivo al lado: es un cargo que
-            el cliente puede evitar eligiendo otra fecha, así que tiene que
-            entender de dónde sale. */}
+        {/* Solo aparece cuando la tienda lo marca en el kiosk: la web pública
+            ya no lo cobra (25/11/2026). */}
         {urgencyCents > 0 && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">
               Suplemento por urgencia
-              <span className="block text-xs">
-                Menos de {STANDARD_LEAD_DAYS} días de antelación
-              </span>
+              {derived.urgent && (
+                <span className="block text-xs">
+                  Menos de {STANDARD_LEAD_DAYS} días de antelación
+                </span>
+              )}
             </dt>
             <dd className="font-medium">{formatEuros(urgencyCents)}</dd>
           </div>

@@ -88,6 +88,7 @@ export interface ConfiguratorInitial {
   candleDigits?: string;
   candleStyle?: CandleStyle;
   sparklerQuantity?: number;
+  cinnamon?: boolean;
   referenceImageId?: string;
   referenceImageSource?: "cliente" | "ia";
   aiPrompt?: string;
@@ -116,6 +117,7 @@ export function draftItemToInitial(item: {
     candleDigits: c.candleDigits,
     candleStyle: c.candleStyle,
     sparklerQuantity: c.sparklerQuantity,
+    cinnamon: c.cinnamon,
     referenceImageId: c.referenceImageId,
     referenceImageSource: c.referenceImageSource,
     aiPrompt: c.aiPrompt,
@@ -230,6 +232,7 @@ function CakeConfigurator({
   const [sparklerQuantity, setSparklerQuantity] = React.useState(
     initial?.sparklerQuantity ?? 0
   );
+  const [cinnamon, setCinnamon] = React.useState(initial?.cinnamon ?? false);
   const [error, setError] = React.useState<string | null>(null);
   /** Para llevar al cliente hasta la casilla de la caja si intenta seguir sin marcarla. */
   const cajaRef = React.useRef<HTMLFieldSetElement>(null);
@@ -259,6 +262,7 @@ function CakeConfigurator({
     setCandleDigits(initial?.candleDigits ?? "");
     setCandleStyle(initial?.candleStyle ?? "vela");
     setSparklerQuantity(initial?.sparklerQuantity ?? 0);
+    setCinnamon(initial?.cinnamon ?? false);
     setError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id, customerType]);
@@ -272,6 +276,8 @@ function CakeConfigurator({
    */
   const showBox = requiresBox(product);
   const isCheesecake = product.id === "cheesecake";
+  /** Casilla opcional de canela, sin coste (Dulce Flor, 25/11/2026). */
+  const offersCinnamon = product.id === "tres-leches";
   const isFondant = product.customCakeType === "fondant";
   /** Las solicitudes a medida exigen fotografía de referencia. */
   const imageRequired = Boolean(product.requiresReferenceImage);
@@ -448,6 +454,9 @@ function CakeConfigurator({
       candleStyle: candleDigits ? candleStyle : undefined,
       candleQuantity: candleDigits ? candleDigits.length : undefined,
       sparklerQuantity: sparklerQuantity > 0 ? sparklerQuantity : undefined,
+      // Sin marcar se guarda false, no se omite: el obrador tiene que leer
+      // «sin canela», no adivinarlo.
+      cinnamon: offersCinnamon ? cinnamon : undefined,
       referenceImageId,
     };
 
@@ -655,6 +664,22 @@ function CakeConfigurator({
               </div>
             )}
           </div>
+        </fieldset>
+      )}
+
+      {offersCinnamon && (
+        <fieldset>
+          <legend className="mb-2 flex w-full items-baseline justify-between gap-2">
+            <span className="font-display text-base font-semibold text-primary">Canela</span>
+            <span className="text-xs text-muted-foreground">Opcional</span>
+          </legend>
+          <OptionCard
+            role="checkbox"
+            selected={cinnamon}
+            onSelect={() => setCinnamon((con) => !con)}
+            title="Con canela"
+            subtitle="Si no lo marcas, la tarta va sin canela."
+          />
         </fieldset>
       )}
 

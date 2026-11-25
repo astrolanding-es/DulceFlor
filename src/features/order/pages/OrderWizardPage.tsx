@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   DELIVERY_ZONES,
-  URGENT_ORDER_SURCHARGE_CENTS,
   WHATSAPP_PHONE,
   WHATSAPP_PHONE_DISPLAY,
 } from "@/config/business";
@@ -1074,11 +1073,7 @@ export default function OrderWizardPage() {
                         className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground"
                       >
                         <strong>Pedido urgente:</strong> lo quieres para dentro de
-                        menos de 3 días, así que lleva un{" "}
-                        <strong>
-                          suplemento de {formatEuros(URGENT_ORDER_SURCHARGE_CENTS)}
-                        </strong>{" "}
-                        ya incluido en el total. Lo registramos igualmente, pero{" "}
+                        menos de 3 días. Lo registramos igualmente, pero{" "}
                         <strong>
                           necesitamos que nos envíes el WhatsApp al terminar
                         </strong>{" "}

@@ -120,6 +120,12 @@ export interface ItemCustomization {
   candleStyle?: CandleStyle;
   /** Bengalas sueltas, sin número. Se cuentan y cobran aparte de la cifra. */
   sparklerQuantity?: number;
+  /**
+   * Solo tres leches: true con canela, false sin canela (casilla opcional,
+   * sin coste; Dulce Flor, 25/11/2026). Ausente en el resto de productos y en
+   * los pedidos anteriores, que no se preguntaba.
+   */
+  cinnamon?: boolean;
   /** Personalización especial en texto libre. */
   notes?: string;
   /** Imagen de referencia adjuntada por el cliente (id en el almacén de imágenes). */
@@ -184,9 +190,9 @@ export interface OrderPricing {
   /** null = zona fuera de cobertura automática ("consultar"). */
   deliveryFeeCents: number | null;
   /**
-   * Suplemento por pedido urgente (menos de 3 días de margen). Se cobra una
-   * vez por pedido y se muestra como línea propia: el cliente tiene que ver
-   * por qué paga más. Ausente cuando el pedido llega con margen normal.
+   * Suplemento por urgencia. Se cobra una vez por pedido y se muestra como
+   * línea propia. Desde el 25/11/2026 solo cuando la tienda lo marca: un
+   * pedido puede ser urgente (`Order.urgent`) y no llevarlo.
    */
   urgencySurchargeCents?: number;
   totalCents: number;

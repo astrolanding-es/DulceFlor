@@ -79,14 +79,17 @@ export function submitOrder(
 
   // La urgencia se decide AQUÍ, no al elegir la fecha: si el cliente dejó el
   // borrador a medias unos días, cuenta el margen real que queda al enviar.
-  // El mismo valor manda en el suplemento y en la marca del pedido.
   const urgent = isRequestedSlotUrgent(state.requestedDate!, state.requestedTime!);
+  // El suplemento es otra cosa: solo lo cobra la tienda, y solo si lo marca
+  // (Dulce Flor, 25/11/2026). Desde la web no se aplica nunca, aunque el
+  // borrador guardado en el navegador diga lo contrario.
+  const urgencySurcharge = source === "kiosk" && state.urgencySurcharge;
 
   const pricing = computeOrderPricing(
     orderItems,
     state.fulfillmentType === "delivery" ? (zoneResolution?.feeCents ?? null) : 0,
     null,
-    urgent
+    urgencySurcharge
   );
 
   // La señal se guarda solo si es un importe positivo; nunca por encima del

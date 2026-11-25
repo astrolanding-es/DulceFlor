@@ -37,6 +37,7 @@ const CUSTOMIZACION_COMPLETA: ItemCustomization = {
   candleDigits: "25",
   candleStyle: "vela",
   sparklerQuantity: 1,
+  cinnamon: false,
   notes: "Sin frutos secos",
   referenceImageId: "img-1",
   referenceImageSource: "ia",
@@ -95,5 +96,12 @@ describe("el borrador guardado no puede perder campos por el camino", () => {
     const { boxAccepted: _omitido, ...sinCaja } = CUSTOMIZACION_COMPLETA;
     const parsed = draftStateSchema.safeParse(borradorCon(sinCaja));
     expect(parsed.success).toBe(true);
+  });
+
+  it("un borrador de antes del suplemento opcional arranca sin cobrarlo", () => {
+    // borradorCon no trae urgencySurcharge, como los guardados antes del 25/11/2026.
+    expect(draftStateSchema.parse(borradorCon(CUSTOMIZACION_COMPLETA)).urgencySurcharge).toBe(
+      false
+    );
   });
 });

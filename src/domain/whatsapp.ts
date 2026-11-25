@@ -113,6 +113,7 @@ export function buildOrderWhatsAppMessage(order: Order): string {
       lines.push("Toppings:");
       for (const t of c.toppings) lines.push(`- ${t.label}`);
     }
+    if (c.cinnamon !== undefined) lines.push(c.cinnamon ? "Con canela" : "Sin canela");
     if (c.customToppingRequest) {
       lines.push(`Topping solicitado: ${c.customToppingRequest}`);
       lines.push("  (precio pendiente de confirmación)");

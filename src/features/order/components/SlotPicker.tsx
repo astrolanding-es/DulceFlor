@@ -94,10 +94,10 @@ function UrgentNotice({
             Este día, las horas anteriores a las {calmFromTime} son urgentes
           </strong>{" "}
           (quedan menos de {STANDARD_LEAD_DAYS} días para ellas). Si eliges una de
-          esas horas, el pedido lleva un suplemento de {URGENCY_SURCHARGE_LABEL}
+          esas horas,{" "}
           {variant === "public"
-            ? " y necesitaremos confirmarte por WhatsApp si llegamos a tiempo."
-            : " y quedará marcado como urgente en el panel."}
+            ? "necesitaremos confirmarte por WhatsApp si llegamos a tiempo."
+            : "el pedido quedará marcado como urgente en el panel."}
         </span>
       ) : (
         <span>
@@ -105,10 +105,9 @@ function UrgentNotice({
             {timeChosen ? "Pedido urgente" : "Fecha urgente"}: quedan menos de{" "}
             {STANDARD_LEAD_DAYS} días.
           </strong>{" "}
-          Lleva un suplemento de {URGENCY_SURCHARGE_LABEL}.{" "}
           {variant === "public"
             ? "Puedes pedirlo igualmente, pero necesitamos confirmarte por WhatsApp si llegamos a tiempo: envíanos el resumen en cuanto termines."
-            : "Quedará marcado como urgente en el panel: confirma con el obrador que da tiempo antes de comprometerlo."}
+            : `Quedará marcado como urgente en el panel: confirma con el obrador que da tiempo antes de comprometerlo. El suplemento de ${URGENCY_SURCHARGE_LABEL} solo se cobra si lo marcas abajo.`}
         </span>
       )}
     </p>
@@ -226,8 +225,7 @@ export function SlotPicker({
         <p className="mb-3 text-sm text-muted-foreground">
           Puedes reservar con hasta {MAX_ORDER_ADVANCE_MONTHS} meses de
           antelación. Recomendamos pedir con al menos {STANDARD_LEAD_DAYS} días:
-          con menos margen el pedido es urgente y lleva un suplemento de{" "}
-          {URGENCY_SURCHARGE_LABEL}.
+          con menos margen el pedido es urgente.
           {CLOSED_DAYS.length > 0 && ` Los ${CLOSED_DAYS.join(" y los ")} cerramos.`}
         </p>
 

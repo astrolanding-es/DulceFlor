@@ -31,6 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { URGENT_ORDER_SURCHARGE_CENTS } from "@/config/business";
 import { formatEuros, parseEurosToCents } from "@/domain/money";
 import { computeBalanceDueCents } from "@/domain/pricing";
 import {
@@ -563,6 +564,23 @@ export default function KioskPage() {
             selectedTime={state.requestedTime}
             onSelect={(date, time) => draft.setSlot(date, time)}
             variant="kiosk"
+          />
+        </section>
+
+        {/* Solo la tienda decide cobrarlo (Dulce Flor, 25/11/2026): la web ya
+            no lo suma sola, aunque el pedido sea urgente. */}
+        <section>
+          <SectionHeading>Suplemento por urgencia</SectionHeading>
+          <OptionCard
+            role="checkbox"
+            selected={state.urgencySurcharge}
+            onSelect={() => draft.setUrgencySurcharge(!state.urgencySurcharge)}
+            title={`Cobrar suplemento por urgencia (+${formatEuros(URGENT_ORDER_SURCHARGE_CENTS)})`}
+            subtitle={
+              derived.urgent
+                ? "Opcional. Este pedido es para dentro de menos de 3 días."
+                : "Opcional. Solo se suma si lo marcas."
+            }
           />
         </section>
 

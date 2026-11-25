@@ -41,6 +41,8 @@ export interface OrderDraftState {
   customer: CustomerInfo | null;
   /** Solo empresas: entrega en fuente de cristal reutilizable (opcional). */
   reusableTray: boolean;
+  /** Solo kiosk: la tienda decide cobrar el suplemento por urgencia. */
+  urgencySurcharge: boolean;
   /** Idempotencia del envío: estable hasta que el pedido se registra. */
   clientRequestId: string;
 }
@@ -54,6 +56,7 @@ const initialState = (): OrderDraftState => ({
   requestedTime: null,
   customer: null,
   reusableTray: false,
+  urgencySurcharge: false,
   clientRequestId: newInternalId(),
 });
 
@@ -68,6 +71,7 @@ type Action =
   | { type: "setSlot"; date: string | null; time: string | null }
   | { type: "setCustomer"; customer: CustomerInfo }
   | { type: "setReusableTray"; reusableTray: boolean }
+  | { type: "setUrgencySurcharge"; urgencySurcharge: boolean }
   | { type: "reset" };
 
 function reducer(state: OrderDraftState, action: Action): OrderDraftState {
@@ -112,6 +116,8 @@ function reducer(state: OrderDraftState, action: Action): OrderDraftState {
       return { ...state, customer: action.customer };
     case "setReusableTray":
       return { ...state, reusableTray: action.reusableTray };
+    case "setUrgencySurcharge":
+      return { ...state, urgencySurcharge: action.urgencySurcharge };
     case "reset":
       return initialState();
     default:
@@ -161,6 +167,7 @@ export const draftStateSchema = z.object({
         candleDigits: z.string().optional(),
         candleStyle: z.enum(["vela", "bengala"]).optional(),
         sparklerQuantity: z.number().int().nonnegative().optional(),
+        cinnamon: z.boolean().optional(),
         notes: z.string().optional(),
         referenceImageId: z.string().optional(),
         referenceImageSource: z.enum(["cliente", "ia"]).optional(),
@@ -190,6 +197,7 @@ export const draftStateSchema = z.object({
     .nullable(),
   // default(false): borradores antiguos sin este campo siguen siendo válidos.
   reusableTray: z.boolean().default(false),
+  urgencySurcharge: z.boolean().default(false),
   clientRequestId: z.string().min(1),
 });
 
@@ -210,7 +218,7 @@ export interface OrderDraftDerived {
   deliveryFeeCents: number | null;
   deliveryZoneLabel: string | null;
   needsDeliveryConsultation: boolean;
-  /** Fecha elegida con menos de 3 días de margen: el pedido lleva suplemento. */
+  /** Fecha elegida con menos de 3 días de margen (el suplemento va aparte). */
   urgent: boolean;
   pricing: OrderPricing;
 }
@@ -242,6 +250,7 @@ interface OrderDraftContextValue {
   setSlot: (date: string | null, time: string | null) => void;
   setCustomer: (c: CustomerInfo) => void;
   setReusableTray: (value: boolean) => void;
+  setUrgencySurcharge: (value: boolean) => void;
   reset: () => void;
 }
 
@@ -341,17 +350,18 @@ export function OrderDraftProvider({
 
     // La urgencia se mira contra el reloj de ahora, no contra el momento en
     // que se eligió la fecha: si el borrador lleva días abierto, el margen
-    // real puede haber cambiado y con él el suplemento.
+    // real puede haber cambiado.
     const urgent =
       state.requestedDate !== null &&
       state.requestedTime !== null &&
       isRequestedSlotUrgent(state.requestedDate, state.requestedTime);
 
+    // El suplemento ya no sale de la fecha: solo si la tienda lo marca.
     const pricing = computeOrderPricing(
       orderItems,
       state.fulfillmentType === "delivery" ? deliveryFeeCents : 0,
       null,
-      urgent
+      state.urgencySurcharge
     );
     return {
       orderItems,
@@ -367,6 +377,7 @@ export function OrderDraftProvider({
     state.address,
     state.requestedDate,
     state.requestedTime,
+    state.urgencySurcharge,
   ]);
 
   const value = React.useMemo<OrderDraftContextValue>(
@@ -413,6 +424,8 @@ export function OrderDraftProvider({
       setSlot: (date, time) => dispatch({ type: "setSlot", date, time }),
       setCustomer: (customer) => dispatch({ type: "setCustomer", customer }),
       setReusableTray: (reusableTray) => dispatch({ type: "setReusableTray", reusableTray }),
+      setUrgencySurcharge: (urgencySurcharge) =>
+        dispatch({ type: "setUrgencySurcharge", urgencySurcharge }),
       reset: () => dispatch({ type: "reset" }),
     }),
     [state, derived]

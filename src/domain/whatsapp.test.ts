@@ -63,6 +63,25 @@ describe("buildOrderWhatsAppMessage y la urgencia", () => {
   });
 });
 
+describe("la canela de la tres leches", () => {
+  const conCanela = (cinnamon: boolean | undefined) => {
+    const base = orderWith({});
+    const item = base.items[0];
+    return orderWith({
+      items: [{ ...item, customization: { ...item.customization, cinnamon } }],
+    });
+  };
+
+  it("dice con o sin canela, para que el obrador no lo adivine", () => {
+    expect(buildOrderWhatsAppMessage(conCanela(true))).toContain("Con canela");
+    expect(buildOrderWhatsAppMessage(conCanela(false))).toContain("Sin canela");
+  });
+
+  it("en los demás productos no dice nada", () => {
+    expect(buildOrderWhatsAppMessage(conCanela(undefined))).not.toContain("canela");
+  });
+});
+
 describe("buildOrderWhatsAppMessage y la señal", () => {
   it("sin señal cobrada, sugiere la paga y señal del 30 %", () => {
     const msg = buildOrderWhatsAppMessage(orderWith({}));

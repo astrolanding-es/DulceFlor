@@ -62,6 +62,7 @@ function DraftItemRow({
             {c.toppings.length > 0 && (
               <li>Toppings: {c.toppings.map((t) => t.label).join(", ")}</li>
             )}
+            {c.cinnamon !== undefined && <li>{c.cinnamon ? "Con canela" : "Sin canela"}</li>}
             {c.customToppingRequest && (
               <li>
                 Topping solicitado: {c.customToppingRequest}
