@@ -3,9 +3,10 @@
  *
  * Funciona en dos capas, igual que los pedidos (ver orderRepository):
  *
- *  1. **localStorage**, siempre. La imagen se procesa (redimensiona y
+ *  1. **localStorage**, primero. La imagen se procesa (redimensiona y
  *     comprime) y se guarda bajo su propia clave; el pedido solo referencia el
- *     id, nunca el base64. Es instantáneo y sirve sin conexión.
+ *     id, nunca el base64. Es instantáneo y sirve sin conexión. En cuanto está
+ *     subida al Storage se borra de aquí (ver flushImageUploads).
  *  2. **Supabase Storage**, cuando está configurado. Al registrar un pedido con
  *     imagen, esta se sube en segundo plano al bucket privado `order-references`
  *     para que el panel la vea desde cualquier dispositivo — que es justo lo
@@ -253,7 +254,9 @@ async function uploadOne(id: string): Promise<boolean> {
         contentType: "image/jpeg",
         upsert: false,
       });
-    if (error && !/exist|dupl/i.test(error.message)) return false;
+    // Estricto a propósito: de este «sí» depende que se borre la copia local.
+    // Un «does not exist» no es un «ya existe».
+    if (error && !/already exists|duplicate/i.test(error.message)) return false;
     return true;
   } catch {
     return false;
@@ -266,15 +269,28 @@ function removePendingUpload(id: string): void {
   if (pending.delete(id)) writePendingUploads(pending);
 }
 
-/** Intenta subir todo lo pendiente. Sin Supabase o sin cola, no hace nada. */
-export async function flushImageUploads(): Promise<void> {
+/**
+ * Intenta subir todo lo pendiente y, lo que sube, lo borra del dispositivo: el
+ * navegador solo da unos 5 MB y con las fotos de pedidos ya subidos la tablet
+ * de la tienda se llenó y dejó de aceptar productos con foto. El panel las pide
+ * al Storage cuando no las encuentra en local.
+ *
+ * `alsoIds` son imágenes de pedidos ya registrados que pueden seguir en local
+ * sin estar en la cola: las de antes de este cambio, o las que perdieron su
+ * turno porque la cola no se pudo escribir con el almacenamiento lleno.
+ *
+ * Sin Supabase no hace nada: la copia local es la única.
+ */
+export async function flushImageUploads(alsoIds: Iterable<string> = []): Promise<void> {
   if (!isSupabaseConfigured()) return;
   // Copia de los ids al empezar; cada baja relee la cola fresca. Así, si otro
   // pedido encola una imagen durante un await, no se pierde al reescribir.
-  const ids = [...readPendingUploads()];
-  if (ids.length === 0) return;
+  const ids = new Set([...readPendingUploads(), ...alsoIds]);
   for (const id of ids) {
-    if (await uploadOne(id)) removePendingUpload(id);
+    if (await uploadOne(id)) {
+      deleteImage(id);
+      removePendingUpload(id);
+    }
   }
 }
 

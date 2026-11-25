@@ -21,7 +21,7 @@ import type {
   OrderItem,
   OrderPricing,
 } from "@/domain/types";
-import { deleteImage, pruneImagesExcept } from "@/services/imageStore";
+import { deleteImage, flushImageUploads, pruneImagesExcept } from "@/services/imageStore";
 import { orderRepository } from "@/services/orderRepository";
 
 export interface DraftItem {
@@ -301,13 +301,18 @@ export function OrderDraftProvider({
           // borrador ilegible: se ignora
         }
       }
+      const registered: string[] = [];
       for (const order of orderRepository.list()) {
         for (const item of order.items) {
           const id = item.customization?.referenceImageId;
-          if (id) referenced.add(id);
+          if (id) registered.push(id);
         }
       }
+      registered.forEach((id) => referenced.add(id));
       pruneImagesExcept(referenced);
+      // Las de pedidos ya registrados se suben (si faltaba) y se borran de
+      // aquí: si no, se acumulan hasta llenar el navegador.
+      void flushImageUploads(registered);
     } catch {
       // sin almacenamiento disponible
     }

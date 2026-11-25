@@ -58,6 +58,11 @@ antes se quedaba en el móvil del cliente:
   plano, igual que el pedido. La subida va como `anon` (o `authenticated` en el
   kiosk), que solo tiene permiso de INSERT: un reintento de algo que ya subió se
   trata como éxito, sin necesitar UPDATE/SELECT.
+- **En cuanto está subida, se borra del dispositivo** (`flushImageUploads`), y
+  solo entonces. El navegador da unos 5 MB por web y cada foto ocupa unos 200 K:
+  el 25/11/2026 la tablet de la tienda dejó de aceptar productos con foto porque
+  guardaba las de todos los pedidos ya subidos. Al arrancar la web se repasan
+  también las de pedidos antiguos: se suben si faltaban y se borran.
 - El panel la muestra pidiendo el local primero y, si no está, una **URL firmada
   temporal** del Storage (requiere sesión, política de `storage.objects`).
 - Sin Supabase, todo esto se apaga y las imágenes se quedan solo en el
