@@ -477,7 +477,9 @@ function CakeConfigurator({
             {isFondant
               ? "Las tartas de fondant se presupuestan a mano según la complejidad del diseño."
               : "Las decoraciones especiales se presupuestan a mano según el trabajo que requieren."}{" "}
-            Envíanos tu idea y una fotografía de referencia: Dulce Flor revisará el diseño
+            Envíanos tu idea
+            {imageRequired ? " y una fotografía de referencia" : " (y una foto de referencia, si la tienes)"}
+            : Dulce Flor revisará el diseño
             y te <strong>confirmará el precio final por WhatsApp</strong>. Aquí no se
             muestra ningún precio.
           </span>

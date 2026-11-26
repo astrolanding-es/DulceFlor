@@ -1,7 +1,8 @@
 /**
  * Selector de fecha y hora en calendario mensual: se puede reservar con
  * meses de antelación (confirmado 29/08/2026) y también para dentro de menos
- * de 3 días, en cuyo caso el pedido es URGENTE y se avisa aquí mismo.
+ * de 3 días, en cuyo caso el pedido es URGENTE y se avisa aquí mismo (solo
+ * en la web pública; en el kiosk esos días se ven normales).
  * Qué días y horas se ofrecen lo decide el dominio (domain/schedule.ts).
  */
 import * as React from "react";
@@ -22,9 +23,7 @@ import {
   BUSINESS_HOURS,
   MAX_ORDER_ADVANCE_MONTHS,
   STANDARD_ORDER_LEAD_TIME_DAYS,
-  URGENT_ORDER_SURCHARGE_CENTS,
 } from "@/config/business";
-import { formatEuros } from "@/domain/money";
 import {
   findFirstAvailableSlot,
   getAvailableSlotsForDate,
@@ -53,31 +52,27 @@ const CLOSED_DAYS = Object.entries(BUSINESS_HOURS)
   .map(([day]) => DAY_NAMES_PLURAL[Number(day)]);
 
 const STANDARD_LEAD_DAYS = STANDARD_ORDER_LEAD_TIME_DAYS;
-const URGENCY_SURCHARGE_LABEL = formatEuros(URGENT_ORDER_SURCHARGE_CENTS);
 
 interface SlotPickerProps {
   selectedDate: string | null; // "yyyy-MM-dd"
   selectedTime: string | null; // "HH:MM"
   onSelect: (date: string | null, time: string | null) => void;
   /**
-   * Cambia el texto del aviso de urgencia: al público se le pide confirmar
-   * por WhatsApp; en el kiosk es el propio equipo quien registra el pedido.
+   * El público ve los días urgentes marcados y el aviso de que hay que
+   * confirmarlos por WhatsApp; el kiosk los ve como días normales.
    */
   variant?: "public" | "kiosk";
 }
 
 /**
- * Aviso de pedido urgente, con el texto adecuado a quién lo está viendo y a
- * lo elegido. En el día frontera (solo las primeras horas son urgentes) no se
+ * Aviso de pedido urgente (solo web pública), según lo elegido. En el día frontera (solo las primeras horas son urgentes) no se
  * puede afirmar «quedan menos de 3 días» del día entero: se dice desde qué
  * hora hay margen normal.
  */
 function UrgentNotice({
-  variant,
   timeChosen,
   calmFromTime,
 }: {
-  variant: "public" | "kiosk";
   timeChosen: boolean;
   /** Primera hora del día elegido que ya NO es urgente (día frontera). */
   calmFromTime: string | null;
@@ -94,10 +89,7 @@ function UrgentNotice({
             Este día, las horas anteriores a las {calmFromTime} son urgentes
           </strong>{" "}
           (quedan menos de {STANDARD_LEAD_DAYS} días para ellas). Si eliges una de
-          esas horas,{" "}
-          {variant === "public"
-            ? "necesitaremos confirmarte por WhatsApp si llegamos a tiempo."
-            : "el pedido quedará marcado como urgente en el panel."}
+          esas horas, necesitaremos confirmarte por WhatsApp si llegamos a tiempo.
         </span>
       ) : (
         <span>
@@ -105,9 +97,8 @@ function UrgentNotice({
             {timeChosen ? "Pedido urgente" : "Fecha urgente"}: quedan menos de{" "}
             {STANDARD_LEAD_DAYS} días.
           </strong>{" "}
-          {variant === "public"
-            ? "Puedes pedirlo igualmente, pero necesitamos confirmarte por WhatsApp si llegamos a tiempo: envíanos el resumen en cuanto termines."
-            : `Quedará marcado como urgente en el panel: confirma con el obrador que da tiempo antes de comprometerlo. El suplemento de ${URGENCY_SURCHARGE_LABEL} solo se cobra si lo marcas abajo.`}
+          Puedes pedirlo igualmente, pero necesitamos confirmarte por WhatsApp si
+          llegamos a tiempo: envíanos el resumen en cuanto termines.
         </span>
       )}
     </p>
@@ -211,10 +202,14 @@ export function SlotPicker({
     selectedDay && dayHasUrgentSlots
       ? (slots.find((slot) => !isSlotUrgent(selectedDay, slot, now)) ?? null)
       : null;
+  // En el kiosk los días con poco margen se ven como cualquier otro: la
+  // urgencia la decide la tienda con su casilla (Dulce Flor, 26/11/2026).
+  const marksUrgency = variant === "public";
   const showUrgentNotice =
-    selectedDay && selectedTime
+    marksUrgency &&
+    (selectedDay && selectedTime
       ? isSlotUrgent(selectedDay, selectedTime, now)
-      : Boolean(dayHasUrgentSlots);
+      : Boolean(dayHasUrgentSlots));
 
   return (
     <div className="space-y-5">
@@ -224,8 +219,9 @@ export function SlotPicker({
         </h3>
         <p className="mb-3 text-sm text-muted-foreground">
           Puedes reservar con hasta {MAX_ORDER_ADVANCE_MONTHS} meses de
-          antelación. Recomendamos pedir con al menos {STANDARD_LEAD_DAYS} días:
-          con menos margen el pedido es urgente.
+          antelación.
+          {marksUrgency &&
+            ` Recomendamos pedir con al menos ${STANDARD_LEAD_DAYS} días: con menos margen el pedido es urgente.`}
           {CLOSED_DAYS.length > 0 && ` Los ${CLOSED_DAYS.join(" y los ")} cerramos.`}
         </p>
 
@@ -296,7 +292,7 @@ export function SlotPicker({
                   const selectable = isDateSelectable(day, now);
                   // Ámbar si tiene ALGUNA hora urgente; la etiqueta «urgente»
                   // solo si lo son TODAS (en el día frontera sería mentira).
-                  const urgent = selectable && isDateUrgent(day, now);
+                  const urgent = marksUrgency && selectable && isDateUrgent(day, now);
                   const fullyUrgent = urgent && isDateFullyUrgent(day, now);
                   const isSelected = iso === selectedDate;
                   return (
@@ -350,11 +346,7 @@ export function SlotPicker({
       </div>
 
       {showUrgentNotice && (
-        <UrgentNotice
-          variant={variant}
-          timeChosen={Boolean(selectedTime)}
-          calmFromTime={calmFromTime}
-        />
+        <UrgentNotice timeChosen={Boolean(selectedTime)} calmFromTime={calmFromTime} />
       )}
 
       {selectedDay && (
@@ -379,7 +371,7 @@ export function SlotPicker({
                 const isSelected = slot === selectedTime;
                 // En un día a caballo del umbral, solo las primeras horas son
                 // urgentes: se marcan para que se vea dónde cambia la cosa.
-                const urgent = isSlotUrgent(selectedDay, slot, now);
+                const urgent = marksUrgency && isSlotUrgent(selectedDay, slot, now);
                 return (
                   <button
                     key={slot}

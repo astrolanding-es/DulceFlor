@@ -650,12 +650,13 @@ export const PRODUCTS: CatalogProduct[] = [
     name: "Tarta personalizada",
     category: "pasteles",
     description:
-      "Decoración especial, dibujos, personajes o un diseño que hayas visto: envíanos tu idea con una fotografía de referencia y te confirmamos el precio por WhatsApp.",
+      "Decoración especial, dibujos, personajes o un diseño que hayas visto: cuéntanos tu idea (con una foto de referencia, si la tienes) y te confirmamos el precio por WhatsApp.",
     availableFor: ["individual"], // confirmado: solo particulares
     // Sin precio automático: la decoración especial se presupuesta a mano.
     pricingType: "quote",
     customCakeType: "custom",
-    requiresReferenceImage: true,
+    // Foto opcional (Dulce Flor, 26/11/2026): muchas clientas la piden «a tu
+    // gusto» y no hay foto que poner. En fondant sigue siendo obligatoria.
     sizes: { individual: buildQuoteCakeSizes() },
     flavors: SPONGE_FLAVORS,
     fillings: CAKE_FILLINGS,

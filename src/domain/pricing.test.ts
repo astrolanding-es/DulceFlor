@@ -523,8 +523,11 @@ describe("tartas a medida (personalizada y fondant)", () => {
       const product = getProduct(id)!;
       expect(product.pricingType).toBe("quote");
       expect(product.availableFor).toEqual(["individual"]);
-      expect(product.requiresReferenceImage).toBe(true);
     }
+    // La foto solo es obligatoria en fondant: la personalizada se puede pedir
+    // «a tu gusto», sin foto (Dulce Flor, 26/11/2026).
+    expect(getProduct("pastel-fondant")!.requiresReferenceImage).toBe(true);
+    expect(getProduct("pastel-personalizado")!.requiresReferenceImage).toBeFalsy();
     const business = getProductsFor("business").map((p) => p.id);
     expect(business).not.toContain("pastel-personalizado");
     expect(business).not.toContain("pastel-fondant");
